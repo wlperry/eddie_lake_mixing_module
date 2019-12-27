@@ -1,0 +1,63 @@
+---
+title: "Lake Mixing Eddie Module"
+output: html_notebook
+---
+
+# Eddie Module Lake Mixing  
+This is an adaption of the eddie module on lake mixing and is here primarily to do the graphing of the air temperature, wind speed and Schmidts stability   
+     
+    
+## Install libraries     
+Install  libraries for use to examine data using tidyverse this only has to be done one time and a # can be put in front of the code to comment it out so it does not run in the future as now.   
+```{r install libraries}
+# install.packages("tidyverse")
+# install.packages("readxl")
+# install.packages("janitor")
+# install.packages("lubridate")
+# install.packages("broom")
+# install.packages("patchwork")
+```
+
+## Load libraries    
+Load the libraries each time you run a script or program   
+```{r load libraries}
+library(tidyverse) # loads a lot of libraries in this one to add more functionality
+library(readxl) # allows you to read in excel files
+library(janitor) # cleans up column names and removes empty columns if wanted
+library(lubridate) # allows easy conversion of varaibles to date format
+library(broom) # cleans up output for easy presentation
+library(scales) # works with the x and y scales on the plots
+library(patchwork) # allows you to plot several graphs on one page
+```
+   
+## Read file   
+Note since they are all in different sheets you can change         
+      sheet = "name of lake"     
+to the name you are interested in to read in that lake       
+
+Read in data on the max dephts, wind, temp and stability
+
+```{r read data}
+st_depth.df <- read_excel("../data/plotting of max st and depth.xlsx")
+                         # identifies the file to read in
+```
+
+## Plot of maximum stability and depth
+This is the plot of maximum stabilty a dependent variable versus the independent varaible of depth
+
+```{r}
+st_depth.df %>%
+  ggplot(aes(x = max_depth, y = max_st, color = mixing_pattern)) + 
+  # note that color = mixing_pattern adds a color by mixing pattern 
+  # try changing this to lake as below
+  geom_point(size = 4)
+```
+
+
+```{r}
+st_depth.df %>%
+  ggplot(aes(x = max_depth, y = max_st, color = lake)) + 
+  # note that color = mixing_pattern adds a color by mixing pattern 
+  # try changing this to lake as below
+  geom_point(size = 4)
+```

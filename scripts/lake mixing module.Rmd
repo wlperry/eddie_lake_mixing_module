@@ -1,0 +1,163 @@
+---
+title: "Lake Mixing Eddie Module"
+output: html_notebook
+---
+
+# Eddie Module Lake Mixing  
+This is an adaption of the eddie module on lake mixing and is here primarily to do the graphing of the air temperature, wind speed and Schmidts stability   
+     
+    
+## Install libraries     
+Install  libraries for use to examine data using tidyverse this only has to be done one time and a # can be put in front of the code to comment it out so it does not run in the future as now.   
+```{r install libraries}
+# install.packages("tidyverse")
+# install.packages("readxl")
+# install.packages("janitor")
+# install.packages("lubridate")
+# install.packages("broom")
+# install.packages("patchwork")
+```
+
+## Load libraries    
+Load the libraries each time you run a script or program   
+```{r load libraries}
+library(tidyverse) # loads a lot of libraries in this one to add more functionality
+library(readxl) # allows you to read in excel files
+library(janitor) # cleans up column names and removes empty columns if wanted
+library(lubridate) # allows easy conversion of varaibles to date format
+library(broom) # cleans up output for easy presentation
+library(scales) # works with the x and y scales on the plots
+library(patchwork) # allows you to plot several graphs on one page
+```
+   
+## Read file   
+Note since they are all in different sheets you can change         
+      sheet = "name of lake"     
+to the name you are interested in to read in that lake       
+
+Read in Lake Annie and stores in the annie.df dataframe in the environment tab.      
+    Note this is slightly different than in the regular scipt <br>     
+    the `../` has to be used as this file thinks the main working directory is<br> 
+    where it is located so we have to jump up one level and then use /data <br> 
+    
+```{r read data}
+annie.df <- read_excel("../data/lake_mixing_module_dataset.xlsx",  
+                         # identifies the file to read in
+  sheet="Annie", # identifies the sheet to read in
+  guess_max = 1000, # allows more rows to guess the type of data
+  skip = 1) # skips the first row of data 
+```
+
+
+## Schmidt Stability vs time
+Plot Schmidt stability vs. time for your lake. What is the maximum Schmidt stability value and when does it occur? Answers are in the instructor’s version of the dataset spreadsheet.
+```{r}
+stability.plot <- annie.df %>% # uses annie data and stores it in this plot name
+  ggplot(aes(x = datetime, y = st)) + # x is the datetime and y is the stability
+  geom_line() + # this adds in a line for the graph
+  geom_point(size = 0.1) + # this adds in points - can add a # to get rid of it
+  scale_x_datetime(date_breaks = "2 week", 
+                   # this adjusts the scale breaks - days, weeks months 
+              # limits = as_datetime(c('2017-06-01 00:00:00','2017-08-01 00:00:00')),
+              # can adjust the limits in the range you want if you want to look sub times
+              labels=date_format("%Y-%m-%d"), expand=c(0,0)) +
+  # this makes the date format on the x axis
+  labs(
+    x= "Date", # labels the x axis
+    y = "Schmidts Stability" # labels the y axis
+  ) +
+theme(
+    # Modifies the appearane of the axes titles
+    axis.title.x=element_text(size=14, face="bold"),
+    axis.title.y=element_text(size=14, face="bold"),
+    axis.text.x = element_text(size=10, face="bold", angle=45, hjust=1),
+    axis.text.y = element_text(size=12, face="bold"))
+stability.plot # jsut calls the plot 
+```
+
+Plot the air temperature data and wind speed data vs. time for your lake to explore whether any of the changes in Schmidt stability from day to day are related to weather.
+
+
+## Air temperature
+Since there is so much data and it is hard to see the patters we have presented the daily mean of the data. If you would like to see all of the data you can comment out the chunk indicated below. This can all be done in one set of commands which is nice.
+```{r}
+airtemp.plot <- annie.df %>% # stores graph from data in this plot name
+  # this section can be commented out to show all the data to the next indicator
+  select(datetime, airt) %>% # this only retains these two columns of data
+  mutate(datetime = as.Date(datetime)) %>% # converts datetime to date
+  group_by(datetime) %>% # groups by day to get average by day
+  summarize(airt = mean(airt, na.rm=TRUE)) %>% # takes the average of the variable by day
+                              # na.rm - TRUE gets rid of any missing values
+  # this is the end of of the comment senction to remove to see all data
+  ggplot(aes(x = datetime, y = airt)) + # plot of datetime and air temperature
+  geom_line() + # adds a line to the graph
+  geom_point(size = 0.2) + # adds symbols to the graph but makes them small
+  scale_x_date(date_breaks = "2 week", # 2 week breaks but can be months as well
+  # need to be scale_x_datetime if you want all the data
+              # limits = as_datetime(c('2017-06-01 00:00:00','2017-08-01 00:00:00')),
+              labels=date_format("%Y-%m-%d"),  # sets the way the axis is labeled
+              expand=c(0,0)) + # removes the extra space ggplot adds
+  labs(
+    x= "Date",  # label for x axis
+    y = "Air Temperature (C)" # label for y axis
+    # title = "Air Temperature (C)"
+  ) +
+theme(
+    # Axes appearance
+    axis.title.x=element_text(size=14, face="bold"),
+    axis.title.y=element_text(size=14, face="bold"),
+    axis.text.x = element_text(size=10, face="bold", angle=45, hjust=1),
+    axis.text.y = element_text(size=12, face="bold"))
+airtemp.plot
+
+```
+
+
+## Wind speed plot
+Again this takes the daily average of wind speed to show the data a bit cleaner
+
+```{r}
+windsp.plot <- annie.df %>% # stores graph from data in this plot name
+  # this section can be commented out to show all the data to the next indicator
+  select(datetime, windsp) %>% # this only retains these two columns of data
+  mutate(datetime = as.Date(datetime)) %>% # converts datetime to date
+  group_by(datetime) %>% # groups by day to get average by day
+  summarize(windsp = mean(windsp, na.rm=TRUE)) %>% # takes the average of the variable by day
+  # this is the end of of the comment senction to remove to see all data
+  ggplot(aes(x = datetime, y = windsp)) +
+  geom_line() +
+  geom_point(size=0.2) +
+  scale_x_date(date_breaks = "2 week", # need to be scale_x_datetime if you want all the data
+              # limits = as_datetime(c('2017-06-01 00:00:00','2017-08-01 00:00:00')),
+              labels=date_format("%Y-%m-%d"), expand=c(0,0)) +
+  labs(
+    x= "Date", 
+    y = "Wind Speed (m/sec)"
+    # title = "Mean Wind Speed"
+  ) +
+theme(
+    # LABLES APPEARANCE
+    axis.title.x=element_text(size=14, face="bold"),
+    axis.title.y=element_text(size=14, face="bold"),
+    axis.text.x = element_text(size=10, face="bold", angle=45, hjust=1),
+    axis.text.y = element_text(size=12, face="bold"))
+windsp.plot
+```
+
+## Combine Plots
+The plots can be combined into one to see all of the data at once lined up on the same scale.
+This allows you to see temperature and wind at the same time
+```{r}
+stability.plot +  theme(axis.title.x=element_blank(), axis.text.x=element_blank(),
+                    legend.position = "none") +
+  windsp.plot + theme(axis.title.x=element_blank(), axis.text.x=element_blank(),
+                   legend.position = "none") +
+  airtemp.plot +
+  plot_layout(ncol = 1)+
+  plot_annotation(tag_levels = "A",
+                  tag_suffix = ")")
+
+```
+
+
+
